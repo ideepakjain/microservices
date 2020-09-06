@@ -79,7 +79,7 @@ spec:
             -  containerPort: 8081
             env:
             - name: RDS_HOST
-              value: mysql
+              value: mysql-cluster-ip-service
 
 ---
 apiVersion: v1
@@ -141,6 +141,11 @@ spec:
             image: deepakjain01/aggregator-service:latest
             ports:
             -  containerPort: 8080
+            env:
+            - name: USER_SERVICE_URI
+              value: http://user-cluster-ip-service:8081
+            - name: ORDERS_SERVICE_URI
+              value: http://orders-cluster-ip-service:8082  
 ---
 apiVersion: v1
 kind: Service
