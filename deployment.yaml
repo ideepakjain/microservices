@@ -1,0 +1,168 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+   name: database-persistent-volume-claim
+spec:
+   accessModes:
+   - ReadWriteOnce
+   resources:
+      requests:
+         storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: mysql-selector
+  template:
+    metadata:
+      labels:
+        component: mysql-selector
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:5.7
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+          env:
+            - name: MYSQL_DATABASE
+              value: ordersDB
+             - name: MYSQL_USER
+              value: myuser             
+             - name: MYSQL_PASSWORD
+              value: mypass             
+             - name: MYSQL_ROOT_PASSWORD
+              value: myrootpass    
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: database-persistent-volume-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+   name: mysql-cluster-ip-service
+spec:
+   type: ClusterIP
+   selector:
+      component: mysql-selector
+   ports:
+   -  port: 3306
+      targetPort: 3306
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: user-service-deployment
+spec:
+   replicas: 1
+   selector:
+      matchLabels:
+         component: user-service-selector
+   template:
+      metadata:
+         labels:
+            component: user-service-selector
+      spec:
+         containers:
+         -  name: user-service
+            image: deepakjain01/user-service:latest
+            ports:
+            -  containerPort: 8081
+            env:
+            - name: RDS_HOST
+              value: mysql
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+   name: user-cluster-ip-service
+spec:
+   type: ClusterIP
+   ports:
+   -  port: 8081
+      targetPort: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: orders-service-deployment
+spec:
+   replicas: 1
+   selector:
+      matchLabels:
+         component: orders-service-selector
+   template:
+      metadata:
+         labels:
+            component: orders-service-selector
+      spec:
+         containers:
+         -  name: orders-service
+            image: deepakjain01/orders-service:latest
+            ports:
+            -  containerPort: 8082
+---
+apiVersion: v1
+kind: Service
+metadata:
+   name: orders-cluster-ip-service
+spec:
+   type: ClusterIP
+   ports:
+   -  port: 8082
+      targetPort: 8082
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: aggregator-service-deployment
+spec:
+   replicas: 1
+   selector:
+      matchLabels:
+         component: aggregator-service-selector
+   template:
+      metadata:
+         labels:
+            component: aggregator-service-selector
+      spec:
+         containers:
+         -  name: aggregator-service
+            image: deepakjain01/aggregator-service:latest
+            ports:
+            -  containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+   name: aggregator-cluster-ip-service
+spec:
+   type: ClusterIP
+   ports:
+   -  port: 8080
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-service
+  annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /orderdetails/*
+            backend:
+              serviceName: aggregator-cluster-ip-service
+              servicePort: 8080      
