@@ -34,11 +34,11 @@ spec:
           env:
             - name: MYSQL_DATABASE
               value: ordersDB
-             - name: MYSQL_USER
+            - name: MYSQL_USER
               value: myuser             
-             - name: MYSQL_PASSWORD
+            - name: MYSQL_PASSWORD
               value: mypass             
-             - name: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_ROOT_PASSWORD
               value: myrootpass    
       volumes:
         - name: mysql-storage
@@ -165,4 +165,4 @@ spec:
           - path: /orderdetails/*
             backend:
               serviceName: aggregator-cluster-ip-service
-              servicePort: 8080      
+              servicePort: 8080                  
