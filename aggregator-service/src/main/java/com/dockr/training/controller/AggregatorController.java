@@ -22,7 +22,7 @@ public class AggregatorController {
 	@Autowired
 	private OrdersServiceProxy ordersServiceProxy;
 
-	@GetMapping("orderdetails/{id}")
+	@GetMapping("/orderdetails/{id}")
 	public Orderdetails getOrderdetails(@PathVariable int id) {
 
 		LOGGER.info("Received Request for user id {}. ", id);
