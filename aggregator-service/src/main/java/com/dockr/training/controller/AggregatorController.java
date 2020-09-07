@@ -16,8 +16,8 @@ public class AggregatorController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AggregatorController.class);
 
-	@Autowired
-	private UserServiceProxy userServiceProxy;
+	//@Autowired
+	//private UserServiceProxy userServiceProxy;
 	
 	@Autowired
 	private OrdersServiceProxy ordersServiceProxy;
