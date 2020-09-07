@@ -27,11 +27,11 @@ public class AggregatorController {
 
 		LOGGER.info("Received Request for user id {}. ", id);
 
-		User user = userServiceProxy.retrieveUser(id);
+		//User user = userServiceProxy.retrieveUser(id);
 		Orders orders = ordersServiceProxy.getOrders(id);
 
 		Orderdetails orderDetails = new Orderdetails();
-		orderDetails.setUserDetails(user);
+		//orderDetails.setUserDetails(user);
 		orderDetails.setOrders(orders);
 		return orderDetails;
 
