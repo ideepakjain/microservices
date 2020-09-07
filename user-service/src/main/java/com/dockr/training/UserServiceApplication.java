@@ -27,6 +27,7 @@ public class UserServiceApplication implements CommandLineRunner {
 		entity.setEmail("john.doe@google.com");
 		entity.setName("John");
 		entity.setAge("23");
+		if(!repo.existsById(1))
 		repo.save(entity );
 	}
 
