@@ -17,7 +17,7 @@ public class UserResource {
 	@Autowired
 	private UserRepository repository;
 
-	@GetMapping("/users/{id}")
+	@GetMapping("/user/{id}")
 	public User retrieveUser(@PathVariable("id") int id) {
 
 		Optional<User> user = repository.findById(id);
