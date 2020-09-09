@@ -1,0 +1,5 @@
+opentracing:
+  jaeger:
+    udp-sender:
+      host: ${JAEGER_SERVICE_URI:localhost}
+      port: 6831
