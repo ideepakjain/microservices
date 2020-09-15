@@ -6,5 +6,5 @@ docker run -d -e MYSQL_ROOT_PASSWORD=myrootpass -e MYSQL_DATABASE=ordersDB -e MY
 
 goto project folder user-service , mvn clean package install -DskipTests
 
-docker container run -d -p 8081:8081 --name=user-service --network=mysql-net -e RDS_HOST=mysql -e JAEGER_SERVICE_URI=http://jaeger deepakjain01/user-service:latest
+docker container run -d -p 8081:8081 --name=user-service --network=mysql-net -e RDS_HOST=mysql -e JAEGER_QUERY_API_URL=http://jaeger -e JAEGER_COLLECTOR_API_URL=http://jaeger deepakjain01/user-service:latest
 
