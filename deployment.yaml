@@ -1,3 +1,50 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: jaeger-selector
+  template:
+    metadata:
+      labels:
+        component: jaeger-selector
+    spec:
+      containers:
+        - name: jaeger
+          image: jaegertracing/all-in-one
+          ports:
+            - containerPort: 5775 
+              protocol: UDP 
+            - containerPort: 6831 
+              protocol: UDP 
+            - containerPort: 6832 
+              protocol: UDP 
+            - containerPort: 5778 
+              protocol: TCP 
+            - containerPort: 14268 
+              protocol: TCP 
+            - containerPort: 9411 
+              protocol: TCP 
+---
+apiVersion: v1
+kind: Service
+metadata:
+   name: jaeger-cluster-ip-service
+spec:
+   type: ClusterIP
+   selector:
+      component: jaeger-selector
+   ports:
+   -  port: 14268
+      targetPort: 14268
+   -  port: 6831
+      targetPort: 6831      
+      
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -8,9 +55,6 @@ spec:
    resources:
       requests:
          storage: 1Gi
-
-
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -48,9 +92,6 @@ spec:
         - name: mysql-storage
           persistentVolumeClaim:
             claimName: database-persistent-volume-claim
-
-
-
 ---
 apiVersion: v1
 kind: Service
@@ -63,9 +104,6 @@ spec:
    ports:
    -  port: 3306
       targetPort: 3306
-
-
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -89,9 +127,10 @@ spec:
         env:
           - name: RDS_HOST
             value: mysql-cluster-ip-service
-
-
-
+          - name: JAEGER_QUERY_API_URL
+            value: http://jaeger-cluster-ip-service
+          - name: JAEGER_COLLECTOR_API_URL
+            value: http://jaeger-cluster-ip-service                
 ---
 apiVersion: v1
 kind: Service
@@ -104,10 +143,6 @@ spec:
   ports:
   - port: 8081
     targetPort: 8081
-
-
-
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -128,9 +163,11 @@ spec:
       containers:
       - image: deepakjain01/orders-service
         name: orders-service
-
-
-
+        env:
+          - name: JAEGER_QUERY_API_URL
+            value: http://jaeger-cluster-ip-service
+          - name: JAEGER_COLLECTOR_API_URL
+            value: http://jaeger-cluster-ip-service                  
 ---
 apiVersion: v1
 kind: Service
@@ -143,11 +180,6 @@ spec:
   ports:
   - port: 8082
     targetPort: 8082
-
-
-
-
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -173,11 +205,10 @@ spec:
             value: http://user-cluster-ip-service:8081  
           - name: ORDERS_SERVICE_URI
             value: http://orders-cluster-ip-service:8082     
-
-
-
-
-
+          - name: JAEGER_QUERY_API_URL
+            value: http://jaeger-cluster-ip-service
+          - name: JAEGER_COLLECTOR_API_URL
+            value: http://jaeger-cluster-ip-service            
 ---
 apiVersion: v1
 kind: Service
@@ -190,10 +221,6 @@ spec:
   ports:
   - port: 8080 
     targetPort: 8080
-
-
-
-
 ---
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
@@ -209,6 +236,10 @@ spec:
             backend:
               serviceName: aggregator-cluster-ip-service
               servicePort: 8080
+          - path: /api/traces
+            backend:
+              serviceName: jaeger-cluster-ip-service
+              servicePort: 14268              
       
 
 
